@@ -12,7 +12,9 @@ def repeticao():
     if resp == 's' or resp == 'S':
         return 1 
     else:
-        return 0     
+        print("Finalização do Programa")
+        return 0
+             
     
 #Variável do loop
 a = 1
