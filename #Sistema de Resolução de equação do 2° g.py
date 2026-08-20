@@ -7,7 +7,7 @@ ax = float(input("Digite o valor de ax²: "))
 bx = float(input("Digite o valor de bx: "))
 c = float(input("Digite o valor de c: "))
 
-ax2 = ax**2
+ax2 = ax
 
 print("Sua equação é: ",ax2,"²", bx, c,"=0")
 
@@ -31,5 +31,5 @@ x02 = bx1-raiz
 x1 = x01/div
 x2 = x02/div
 
-print("Seu x1 é: ",x1)
-print("Seu x2 é: ",x2)
+print("Seu x1 é: ",round(x1,2))
+print("Seu x2 é: ",round(x2,2))
