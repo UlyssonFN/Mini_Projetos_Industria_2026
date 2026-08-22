@@ -5,11 +5,15 @@
 import qrcode as qr
 
 #Digitar o link online, utilizo bastante para criar inscrições em forms e divulgo as vagas com o qrcode
-link = "https://www.linkedin.com/in/ulysson-fontenele-nobre-287a26125/"
+print("Bem vindo ao Sistema de Qrcode")
+print("Seu Qrcode foi salvo na pasta C:\\Users\\Public\\Documents\\qrcode.png")
+
+link = input("Digite o seu URL: ")
 
 #criar a imagem do QrCode
 imagem = qr.make(link)
 
 #Gera a imagem do qrcode
-imagem.save("C:\\FFOutput\\qrcode_linkedin.png")
+imagem.save("C:\\Users\\Public\\Documents\\SeuQrCode.png")
+print("Segue o Ulysson Fontenele Nobre no Linkedin e mande um salve")
 
