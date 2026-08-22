@@ -6,7 +6,7 @@ import qrcode as qr
 
 #Digitar o link online, utilizo bastante para criar inscrições em forms e divulgo as vagas com o qrcode
 print("Bem vindo ao Sistema de Qrcode")
-print("Seu Qrcode foi salvo na pasta C:\\Users\\Public\\Documents\\qrcode.png")
+print("Seu Qrcode vai ser salvo na pasta C:\\Users\\Public\\Documents\\qrcode.png")
 
 link = input("Digite o seu URL: ")
 
