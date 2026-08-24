@@ -9,6 +9,7 @@ Execute com: python app.py
 # ======================================================================
 import os
 import re
+import csv
 import shutil
 import sqlite3
 import hashlib
@@ -343,6 +344,200 @@ def cadastrar_conta(descricao: str, valor_texto: str, data_venc_br: str, usuario
         return False, f"Erro ao cadastrar conta: {e}"
     finally:
         conn.close()
+
+
+COLUNAS_IMPORTACAO_OBRIGATORIAS = {"descricao", "valor", "data_vencimento"}
+COLUNAS_IMPORTACAO_OPCIONAIS = {"status", "data_pagamento"}
+MAX_ERROS_RELATORIO = 15
+
+
+def _parse_valor_importacao(valor_bruto) -> float:
+    """Aceita numero (celula xlsx) ou texto BR/US ('1250.50', '1.250,50')."""
+    if valor_bruto is None:
+        raise ValueError("valor vazio")
+    if isinstance(valor_bruto, (int, float)):
+        valor = float(valor_bruto)
+    else:
+        texto = str(valor_bruto).strip().replace("R$", "").strip()
+        if not texto:
+            raise ValueError("valor vazio")
+        if "," in texto and "." in texto:
+            texto = texto.replace(".", "").replace(",", ".")
+        elif "," in texto:
+            texto = texto.replace(",", ".")
+        valor = float(texto)
+    if valor <= 0:
+        raise ValueError("valor deve ser maior que zero")
+    return valor
+
+
+def _parse_data_importacao(data_bruta, com_hora=False) -> str:
+    """Aceita objeto datetime/date (celula xlsx) ou texto dd/mm/aaaa ou aaaa-mm-dd."""
+    if isinstance(data_bruta, datetime):
+        return data_bruta.strftime("%Y-%m-%d %H:%M:%S") if com_hora else data_bruta.strftime("%Y-%m-%d")
+    if isinstance(data_bruta, date):
+        dt = datetime(data_bruta.year, data_bruta.month, data_bruta.day)
+        return dt.strftime("%Y-%m-%d %H:%M:%S") if com_hora else dt.strftime("%Y-%m-%d")
+
+    texto = str(data_bruta).strip()
+    if not texto:
+        raise ValueError("data vazia")
+    formatos = ["%d/%m/%Y", "%Y-%m-%d", "%d/%m/%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"]
+    for formato in formatos:
+        try:
+            dt = datetime.strptime(texto, formato)
+            return dt.strftime("%Y-%m-%d %H:%M:%S") if com_hora else dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    raise ValueError("formato de data invalido")
+
+
+def _ler_linhas_csv(caminho: str):
+    try:
+        with open(caminho, "r", encoding="utf-8-sig", newline="") as arquivo:
+            amostra = arquivo.read(4096)
+            arquivo.seek(0)
+            try:
+                dialeto = csv.Sniffer().sniff(amostra, delimiters=";,")
+            except csv.Error:
+                dialeto = csv.excel
+                dialeto.delimiter = ";" if amostra.count(";") > amostra.count(",") else ","
+            leitor = csv.DictReader(arquivo, dialect=dialeto)
+            linhas = [linha for linha in leitor]
+            if leitor.fieldnames is None:
+                return None, "O arquivo CSV esta vazio ou sem cabecalho."
+            cabecalho = [c.strip().lower() for c in leitor.fieldnames]
+            return (cabecalho, linhas), None
+    except UnicodeDecodeError:
+        return None, "Nao foi possivel ler o arquivo CSV (codificacao invalida). Salve como UTF-8."
+    except OSError as e:
+        return None, f"Erro ao abrir o arquivo: {e}"
+
+
+def _ler_linhas_xlsx(caminho: str):
+    try:
+        import openpyxl
+    except ImportError:
+        return None, ("A biblioteca 'openpyxl' nao esta instalada. "
+                       "Instale com: pip install openpyxl")
+    try:
+        workbook = openpyxl.load_workbook(caminho, read_only=True, data_only=True)
+        planilha = workbook.active
+        linhas_brutas = list(planilha.iter_rows(values_only=True))
+        workbook.close()
+    except OSError as e:
+        return None, f"Erro ao abrir o arquivo Excel: {e}"
+    except Exception as e:
+        return None, f"Erro ao ler o arquivo Excel: {e}"
+
+    if not linhas_brutas:
+        return None, "O arquivo Excel esta vazio."
+
+    cabecalho = [str(c).strip().lower() if c is not None else "" for c in linhas_brutas[0]]
+    linhas = []
+    for linha_valores in linhas_brutas[1:]:
+        if all(v is None for v in linha_valores):
+            continue
+        linhas.append({cabecalho[i]: linha_valores[i] for i in range(len(cabecalho)) if i < len(linha_valores)})
+    return (cabecalho, linhas), None
+
+
+def importar_contas(caminho: str, usuario_id: int):
+    """Importa contas de um arquivo .csv ou .xlsx respeitando as colunas da tabela 'contas'.
+
+    Colunas obrigatorias no arquivo: descricao, valor, data_vencimento.
+    Colunas opcionais: status ('Pendente' ou 'Pago'), data_pagamento.
+    Retorna (sucesso: bool, mensagem: str, relatorio: dict | None).
+    """
+    if not caminho or not os.path.isfile(caminho):
+        return False, "Arquivo nao encontrado.", None
+
+    extensao = os.path.splitext(caminho)[1].lower()
+    if extensao == ".csv":
+        resultado, erro = _ler_linhas_csv(caminho)
+    elif extensao in (".xlsx", ".xlsm"):
+        resultado, erro = _ler_linhas_xlsx(caminho)
+    else:
+        return False, "Formato nao suportado. Utilize um arquivo .csv ou .xlsx.", None
+
+    if erro:
+        return False, erro, None
+
+    cabecalho, linhas = resultado
+    faltantes = COLUNAS_IMPORTACAO_OBRIGATORIAS - set(cabecalho)
+    if faltantes:
+        return False, (
+            "Colunas obrigatorias ausentes no arquivo: "
+            f"{', '.join(sorted(faltantes))}. "
+            "As colunas aceitas sao: descricao, valor, data_vencimento, status (opcional), data_pagamento (opcional)."
+        ), None
+
+    if not linhas:
+        return False, "O arquivo nao contem nenhuma linha de dados.", None
+
+    importadas = 0
+    erros = []
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        for indice, linha in enumerate(linhas, start=2):
+            linha_norm = {(k or "").strip().lower(): v for k, v in linha.items()}
+
+            descricao = str(linha_norm.get("descricao") or "").strip()
+            if not descricao:
+                erros.append(f"Linha {indice}: descricao vazia.")
+                continue
+
+            try:
+                valor = _parse_valor_importacao(linha_norm.get("valor"))
+            except ValueError:
+                erros.append(f"Linha {indice}: valor invalido ('{linha_norm.get('valor')}').")
+                continue
+
+            try:
+                data_venc_iso = _parse_data_importacao(linha_norm.get("data_vencimento"))
+            except ValueError:
+                erros.append(f"Linha {indice}: data de vencimento invalida ('{linha_norm.get('data_vencimento')}').")
+                continue
+
+            status = str(linha_norm.get("status") or "Pendente").strip() or "Pendente"
+            status = "Pago" if status.lower() == "pago" else ("Pendente" if status.lower() == "pendente" else status)
+            if status not in ("Pendente", "Pago"):
+                erros.append(f"Linha {indice}: status invalido ('{status}'). Use 'Pendente' ou 'Pago'.")
+                continue
+
+            data_pagamento_iso = None
+            if status == "Pago":
+                bruto_pagamento = linha_norm.get("data_pagamento")
+                if bruto_pagamento:
+                    try:
+                        data_pagamento_iso = _parse_data_importacao(bruto_pagamento, com_hora=True)
+                    except ValueError:
+                        data_pagamento_iso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    data_pagamento_iso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                cursor.execute(
+                    "INSERT INTO contas "
+                    "(descricao, valor, data_vencimento, status, data_pagamento, usuario_id, data_criacao) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (descricao, valor, data_venc_iso, status, data_pagamento_iso, usuario_id, agora),
+                )
+                importadas += 1
+            except sqlite3.Error as e:
+                erros.append(f"Linha {indice}: erro ao salvar no banco ({e}).")
+        conn.commit()
+    except sqlite3.Error as e:
+        return False, f"Erro ao importar contas: {e}", None
+    finally:
+        conn.close()
+
+    relatorio = {"importadas": importadas, "total_linhas": len(linhas), "erros": erros}
+    if importadas == 0:
+        return False, "Nenhuma conta foi importada. Verifique os erros no relatorio.", relatorio
+    return True, f"{importadas} de {len(linhas)} conta(s) importada(s) com sucesso.", relatorio
 
 
 def listar_contas(status_filtro="Todas", mes=None, ano=None):
@@ -976,6 +1171,7 @@ class App(ctk.CTk):
             ("Abrir Comprovante", self._acao_abrir_comprovante, COLORS["texto_sec"]),
             ("Editar", self._acao_editar_conta, COLORS["destaque"]),
             ("Excluir", self._acao_excluir_conta, COLORS["vencido"]),
+            ("Importar (CSV/Excel)", self._acao_importar_contas, COLORS["destaque"]),
             ("Atualizar", self._atualizar_tabela_contas, COLORS["texto_sec"]),
         ]
         for texto, comando, cor in botoes_acao:
@@ -1157,6 +1353,45 @@ class App(ctk.CTk):
             "Sucesso" if sucesso else "Erro", mensagem)
         if sucesso:
             self.conta_selecionada_id = None
+            self._atualizar_tabela_contas()
+
+    def _acao_importar_contas(self):
+        caminho = filedialog.askopenfilename(
+            title="Selecionar arquivo de contas (CSV ou Excel)",
+            filetypes=[
+                ("Planilhas suportadas", "*.csv *.xlsx *.xlsm"),
+                ("CSV", "*.csv"),
+                ("Excel", "*.xlsx *.xlsm"),
+            ],
+        )
+        if not caminho:
+            return
+
+        aviso = (
+            "O arquivo deve conter as colunas (na 1a linha):\n\n"
+            "  descricao (obrigatoria)\n"
+            "  valor (obrigatoria)\n"
+            "  data_vencimento (obrigatoria, dd/mm/aaaa)\n"
+            "  status (opcional: Pendente ou Pago)\n"
+            "  data_pagamento (opcional)\n\n"
+            "Deseja continuar com a importacao?"
+        )
+        if not messagebox.askyesno("Importar Contas", aviso):
+            return
+
+        sucesso, mensagem, relatorio = importar_contas(caminho, self.usuario_atual["id"])
+
+        if relatorio and relatorio.get("erros"):
+            erros = relatorio["erros"]
+            texto_erros = "\n".join(erros[:MAX_ERROS_RELATORIO])
+            if len(erros) > MAX_ERROS_RELATORIO:
+                texto_erros += f"\n... e mais {len(erros) - MAX_ERROS_RELATORIO} erro(s)."
+            mensagem = f"{mensagem}\n\nLinhas com erro ({len(erros)}):\n{texto_erros}"
+
+        (messagebox.showinfo if sucesso else messagebox.showerror)(
+            "Importacao concluida" if sucesso else "Erro na importacao", mensagem)
+
+        if sucesso:
             self._atualizar_tabela_contas()
 
     # ------------------------------------------------------------------
