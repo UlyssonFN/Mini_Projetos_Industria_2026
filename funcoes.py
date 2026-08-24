@@ -11,3 +11,7 @@ def repeticao():
     else:
         print("Finalização do Programa")
         return 0
+
+def printgeometria():
+    print("Sua área é: ",area)
+    print("Seu perímetro é: ",perimetro)
