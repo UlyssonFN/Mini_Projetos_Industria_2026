@@ -1,5 +1,5 @@
 #Cálculo de Perímetros e Área de Figuras
-from funcoes import pringeometria, space, repeticao
+#from funcoes import pringeometria, space, repeticao
 
 
 print("Escolha a figura: ")
@@ -70,5 +70,19 @@ match(interacao):
         perimetro = 4*lado
         print("Sua área é: ",area)
         print("Seu perímetro é: ",perimetro)
-    #case 6: #Trapézio
-    #case 7: #Circulo
+    case 6: #Trapézio
+        basemenor = float(input("Digite e base menor: "))
+        basemaior = float(input("Digite e base maior: "))
+        altura = float(input("Digite a altura: "))
+        lado = float(input("Digite o valor do lado: "))
+        area = (basemaior+basemenor)*altura/2
+        perimetro = (2*lado)+basemaior+basemenor
+        print("Sua área é: ",area)
+        print("Seu perímetro é: ",perimetro)
+    case 7: #Circulo
+        pi = 3.14159
+        raio = float(input("Digite o raio: "))
+        area = pi*raio**2
+        perimetro = 2*pi*raio
+        print("Sua área é: ",area)
+        print("Seu perímetro é: ",perimetro)
