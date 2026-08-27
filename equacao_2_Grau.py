@@ -14,6 +14,7 @@ def equacao2grau():
             ax = float(input("Digite o valor de ax²: "))
             if ax == 0:
                 print("Não é uma equação do 2° Grau")
+                a = repeticao()
             else:
                 bx = float(input("Digite o valor de bx: "))
                 c = float(input("Digite o valor de c: "))

@@ -38,7 +38,11 @@ while a ==1:
                 area_perimentro()
             case 6:
                 capacidade_volumetrica()
+            case valor_desconhecido:
+                print(f"Erro: O comando '{valor_desconhecido}'é inválido.")
+                a = repeticao()
     except Exception:
         print("Nenhum valor corresponde a lista")
-        a =1
+        a = repeticao()
         call = space()
+    

@@ -24,7 +24,7 @@ def calculadora_produtividade():
             print("Quantidade de Pessoas Necessárias para Conferência é: ", round(qtd_hcC,1))
             print("Quantidade de Pessoas Necessárias para Separação é: ", round(qtd_hcS,1))
             #chamada do espaço
-            call = space
+            call = space()
             a = repeticao()
         except Exception:
             call = space()
