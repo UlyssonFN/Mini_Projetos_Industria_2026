@@ -1,5 +1,5 @@
 #funcoes
-import calculo_area_perimetro
+#import calculo_area_perimetro
 
 def space():
     print("--------------------------------") 
@@ -14,6 +14,6 @@ def repeticao():
         print("Finalização do Programa")
         return 0
 
-def pringeometria():
-    print("Sua área é: ",area)
-    print("Seu perímetro é: ",perimetro)
+#def pringeometria():
+    #print("Sua área é: ",area)
+    #print("Seu perímetro é: ",perimetro)

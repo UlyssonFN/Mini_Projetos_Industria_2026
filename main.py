@@ -1,38 +1,44 @@
 #Menu dos sistemas
-def menu():
-    from funcoes import space, repeticao
 
-    a = 1
-    while a ==1:
-        call = space()
-        print("------------Menu de Solicitações-------------")
-        print("1 - Regra de 3 Simples")
-        print("2 - Geração de QrCode")
-        print("3 - Equação 2° Grau")
-        print("4 - Calculadora de Produtividade")
-        print("5 - Calculo de Área e Perímetro de Figuras Geométricas")
-        call = space()
-        try:
-            respc = int(input("Insira a opção desejada: "))
+from funcoes import space, repeticao
+from calculadora_Produtividade import calculadora_produtividade
+from calculo_area_perimetro import area_perimentro
+from calculo_capacidade_endereco import capacidade_volumetrica
+from equacao_2_Grau import equacao2grau
+from gerar_qrcode import qrcode
+from regra_3_simples import regrade3
+from avisos_biblioteca import notify
 
-            match respc:
-                case 1:
-                    import regra_3_simples
-                    regra_3_simples
-                case 2:
-                    import gerar_qrcode
-                    gerar_qrcode
-                case 3:
-                    import equacao_2_Grau
-                    equacao_2_Grau
-                case 4:
-                    import calculadora_Produtividade
-                    calculadora_Produtividade
-                case 5:
-                    import calculo_area_perimetro
-                    calculo_area_perimetro
-        except Exception:
-            print("Nenhum valor corresponde a lista")
-            a =1
-            call = space()
-call = menu()
+notify()
+
+a = 1
+while a ==1:
+    call = space()
+    print("------------Menu de Solicitações-------------")
+    print("1 - Regra de 3 Simples")
+    print("2 - Geração de QrCode")
+    print("3 - Equação 2° Grau")
+    print("4 - Calculadora de Produtividade")
+    print("5 - Calculo de Área e Perímetro de Figuras Geométricas")
+    print("6 - Cálculo de Capacidade de Endereço Volumetrico")
+    call = space()
+    try:
+        respc = int(input("Insira a opção desejada: "))
+
+        match respc:
+            case 1:
+                regrade3()
+            case 2:
+                qrcode()
+            case 3:
+                equacao2grau()
+            case 4:
+                calculadora_produtividade()
+            case 5:
+                area_perimentro()
+            case 6:
+                capacidade_volumetrica()
+    except Exception:
+        print("Nenhum valor corresponde a lista")
+        a =1
+        call = space()

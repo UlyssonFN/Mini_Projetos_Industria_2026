@@ -1,8 +1,9 @@
-from notifypy import Notify
+def notify():
+    from notifypy import Notify
 
-notificacao = Notify()
+    notificacao = Notify()
 
-notificacao.title = "Sistema de Produtividade"
-notificacao.message = "O cálculo foi concluído!"
+    notificacao.title = "Sistema Online - Siga Ulysson Fontenele Linkedin"
+    notificacao.message = "Bem vindo ao Repositório mais atualizado em regras!"
 
-notificacao.send()
+    notificacao.send()
