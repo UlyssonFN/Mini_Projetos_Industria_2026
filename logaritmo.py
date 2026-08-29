@@ -5,6 +5,11 @@
 #Cálculo de Log| Loga N = x <-> a^x = N
 #Logaritmo decimnal: É o log de base 10, normalmente o logaritmo decimal não tem sua base especificada. Se escreve log =a já entende que a base é 10
 #Logaritmo natural: Também chamado de logaritmo neperiano. Sua base é o número e=2,71828...(número de Euler) Loge a = Ln a
+#1L é igual a 1dm³ e 1dm é igual a 10cm
+#Logb (a*c) = logb a + logb c
+#Logb (a:c) = logb a - logb c
+#Logb a^n = n*logb a
+
 def logaritmo():
     from funcoes import space, repeticao
     import math
@@ -47,8 +52,31 @@ def logaritmo():
                 volumeC = area_circulo*altura
                 print("A área do seu circulo é: ",area_circulo)
                 print("O volume do seu Cilindro é: ",volumeC)
+            case 4:
+                a = float(input("Digite o valor de a que é a base: "))
+                n = float(input("Digite o valor de N: "))
+                x = float(input("Digite o valor de x: "))
+                
+                #log a^n = n*log a 
+                resolucao = a**x
+                print("O resultado da Base elevado a x é: ", resolucao)
+                if resolucao == n:
+                    print("É logaritmo")
+                if n == 1:
+                    print("O logaritmo de 1 em qualquer base é nulo = 0")
+                elif log == a:
+                    print("O logaritmo de log = a é a")
+                #Rapaz entendi nada, me ajudem....
+                
             case valor_invalido:
                 print("O Valor, ",valor_invalido,"não corresponde a uma opção válida.")
                 a = repeticao()
                 
 tipo = logaritmo()
+
+
+#calcular o valor dos logaritmos dados
+log2 8 =x
+2^x = 8
+2^x = 2³
+x = 3
