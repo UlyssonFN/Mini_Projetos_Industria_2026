@@ -64,7 +64,7 @@ def logaritmo():
                     print("É logaritmo")
                 if n == 1:
                     print("O logaritmo de 1 em qualquer base é nulo = 0")
-                elif log == a:
+                elif a == a**n:
                     print("O logaritmo de log = a é a")
                 #Rapaz entendi nada, me ajudem....
                 
@@ -76,7 +76,11 @@ tipo = logaritmo()
 
 
 #calcular o valor dos logaritmos dados
-log2 8 =x
-2^x = 8
-2^x = 2³
-x = 3
+#log2 8 =x
+#2^x = 8
+#2^x = 2³
+#x = 3
+3057
+12
+367
+minimo  
