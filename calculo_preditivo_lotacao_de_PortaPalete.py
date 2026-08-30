@@ -46,3 +46,7 @@ def medicao_porta_palete_ocupacao():
             print("Valor inválido")
             space()
             a = repeticao()
+        except ZeroDivisionError():
+            print("Valor inválido")
+            space()
+            a = repeticao()

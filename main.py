@@ -8,6 +8,7 @@ from equacao_2_Grau import equacao2grau
 from gerar_qrcode import qrcode
 from regra_3_simples import regrade3
 from avisos_biblioteca import notify
+from calculo_preditivo_lotacao_de_PortaPalete import medicao_porta_palete_ocupacao
 
 notify()
 
@@ -21,6 +22,7 @@ while a ==1:
     print("4 - Calculadora de Produtividade")
     print("5 - Calculo de Área e Perímetro de Figuras Geométricas")
     print("6 - Cálculo de Capacidade de Endereço Volumetrico")
+    print("7 - Medição Preditiva de Ocupação de Porta Palete")
     call = space()
     try:
         respc = int(input("Insira a opção desejada: "))
@@ -38,6 +40,8 @@ while a ==1:
                 area_perimentro()
             case 6:
                 capacidade_volumetrica()
+            case 7:
+                medicao_porta_palete_ocupacao()
             case valor_desconhecido:
                 print(f"Erro: O comando '{valor_desconhecido}'é inválido.")
                 a = repeticao()

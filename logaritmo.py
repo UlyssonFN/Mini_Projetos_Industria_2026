@@ -71,16 +71,3 @@ def logaritmo():
             case valor_invalido:
                 print("O Valor, ",valor_invalido,"não corresponde a uma opção válida.")
                 a = repeticao()
-                
-tipo = logaritmo()
-
-
-#calcular o valor dos logaritmos dados
-#log2 8 =x
-#2^x = 8
-#2^x = 2³
-#x = 3
-3057
-12
-367
-minimo  
