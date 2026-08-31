@@ -38,15 +38,11 @@ def medicao_porta_palete_ocupacao():
             print("Seu Porta Palete irá ser preenchido em sua totalidade em ",round(dias_para_lotacao,0)," dias")
             space()
             a = repeticao()
-        except ValueError():
-            print("Digite um número inteiro")
+        except Exception:
+            print("Valor inválido - O número digitado tem que ser inteiro")
             space()
             a = repeticao()
-        except Exception():
-            print("Valor inválido")
-            space()
-            a = repeticao()
-        except ZeroDivisionError():
-            print("Valor inválido")
+        except ZeroDivisionError:
+            print("Divisão por zero")
             space()
             a = repeticao()
