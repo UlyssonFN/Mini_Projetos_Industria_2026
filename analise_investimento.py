@@ -3,6 +3,12 @@ import pandas as pd
 import yfinance as yf
 from notifypy import Notify
 from funcoes import space, repeticao
+import datetime as dt
+
+
+hoje = dt.datetime.today()
+hora = dt.time()
+print(hoje, hora)
 
 a = 1
 while a==1:
@@ -21,6 +27,9 @@ while a==1:
             print("---Informe o período--- ")
             print("1d = 1 dia, 1mo = 1 mês, 1y = 1 ano, ytd = inicio do ano até hoje, max = todo histórico")
             periodo = input("Digite o período: ")
+            investimento = float(input("Digite o valor do investimento: "))
+            cotas = int(input("Digite a quantidade de cotas compradas: "))
+            data_compra = input("Digite a data da compra: ")
 
             if periodo == '1d' or periodo == '1mo' or periodo == '1y' or periodo == 'ytd' or periodo =='max':
                 df = acao.history(periodo)
