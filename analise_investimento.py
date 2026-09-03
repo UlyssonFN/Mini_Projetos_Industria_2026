@@ -6,12 +6,13 @@ from funcoes import space, repeticao
 import datetime as dt
 
 
-hoje = dt.datetime.today()
-hora = dt.time()
-print(hoje, hora)
+
+
 
 a = 1
 while a==1:
+    hoje = dt.datetime.today()
+    hora = dt.time()
     print("Escolha a ação:")
     print("1 - Ação BR (interna)")
     print("2 - Ação Externa")
@@ -29,14 +30,29 @@ while a==1:
             periodo = input("Digite o período: ")
             investimento = float(input("Digite o valor do investimento: "))
             cotas = int(input("Digite a quantidade de cotas compradas: "))
-            data_compra = input("Digite a data da compra: ")
-
+            data_compra = input("Digite a data da compra: aaaa-mm-dd ")
+            #converter para dataframer
+            data_compra = pd.to_datetime(data_compra)
+            periodomax = 'max'
+            dfmax = acao.history(periodomax)
+            #faz o filtro de acordo com o que o cliente digitar de data
+            filtro = dfmax[dfmax.index.date == data_compra.date()]
+            #["Close"] → quero a coluna Close
+            #.iloc[0] → quero o primeiro valor dessa coluna
+            precofechamento = filtro['Close'].iloc[0]
+            investimento_inicial = investimento * cotas * precofechamento
+            space()
+            print('O seu investimento inicial foi de :',round(investimento_inicial,2))
+            space()           
+            
             if periodo == '1d' or periodo == '1mo' or periodo == '1y' or periodo == 'ytd' or periodo =='max':
                 df = acao.history(periodo)
+                df2 = df.filter(items=['Open','Close'])
+                investimento_hoje = 0
                 print("------Hoje (Ação BR)------",acao)
-                print(round(df,2))
+                print(round(df2,2))
                 print("------Detalhado (Ação BR)------", acao)
-                print(round(df.describe(),2))
+                print(round(df2.describe(),2))
                 a = repeticao()
             else:
                 print("valor inválido")
@@ -61,3 +77,4 @@ while a==1:
             else:
                 print("valor inválido")
                 a = repeticao()
+                

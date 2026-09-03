@@ -17,3 +17,16 @@ def qrcode():
     imagem.save("C:\\Users\\Public\\Documents\\SeuQrCode.png")
     print("Segue o Ulysson Fontenele Nobre no Linkedin e mande um salve")
 
+a =1
+while a == 1:                   
+    try:                 
+        print("Hoje tem live, vai participar")
+        resp = input("Responda: s/n")
+
+        if resp == 's' or resp == 'S':
+            print("Arrocha que vai sair mais inteligente")
+        else:
+            print("É um boboca mesmo")
+    except Exception:
+        print("Gambiarra para voltar ao Loop")
+        a = 1
